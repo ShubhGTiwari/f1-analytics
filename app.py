@@ -26,7 +26,8 @@ page = st.sidebar.radio("Select Module:", [
     "F1 News Sentiment Analysis", 
     "Championship Simulator",
     "Sponsorship Media Value Estimator",
-    "Weather Impact Analysis"
+    "Weather Impact Analysis",
+    "Predictive Maintenance"
 ])
 
 # --- MODULE 1: STRATEGY ---
@@ -264,3 +265,44 @@ elif page == "Weather Impact Analysis":
     
     # Correlation Metric
     st.info("Insight: In Bahrain 2024, as track temperature dropped (night race), lap times stabilized despite tyre wear.")
+
+
+# --- MODULE 7: PREDICTIVE MAINTENANCE ---
+elif page == "Predictive Maintenance":
+    st.title("Reliability & Predictive Maintenance")
+    st.markdown("Monitoring component stress levels to predict potential failures.")
+    
+    # 1. Fetch Data
+    query = text("""
+        SELECT driver_code, lap_number, gear_shifts_cumulative, engine_heat_cumulative, risk_level 
+        FROM component_wear 
+        WHERE race_id = 1
+    """)
+    
+    with engine.connect() as conn:
+        df_wear = pd.read_sql(query, conn)
+        
+    # 2. Risk Heatmap
+    st.subheader("Component Reliability Monitor")
+    latest_status = df_wear.loc[df_wear.groupby('driver_code')['lap_number'].idxmax()]
+    risk_colors = {"Low": "#00FF00", "Medium": "#FFFF00", "High": "#FF9900", "Critical": "#FF0000"}
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        fig_stress = px.line(
+            df_wear, x="lap_number", y="gear_shifts_cumulative", color="driver_code",
+            title="Cumulative Gearbox Stress (Total Shifts)",
+            template="plotly_dark"
+        )
+        st.plotly_chart(fig_stress, use_container_width=True)
+        
+    with col2:
+        st.write("### Active Alerts")
+        critical_drivers = latest_status[latest_status['risk_level'].isin(['High', 'Critical'])]
+        if not critical_drivers.empty:
+            for _, row in critical_drivers.iterrows():
+                color = "red" if row['risk_level'] == "Critical" else "orange"
+                st.error(f" **{row['driver_code']}**: {row['risk_level']} Gearbox Wear ({row['gear_shifts_cumulative']} shifts)")
+        else:
+            st.success("All systems nominal.")
