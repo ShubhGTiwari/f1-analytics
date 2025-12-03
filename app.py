@@ -111,6 +111,27 @@ elif page == "Driver Telemetry Comparison":
     else:
         st.error("No telemetry data found. Run 'ingest_telemetry.py' first!")
 
+        st.subheader("Driver DNA Comparison")
+        speed_score = (avg_data['max_speed_kmh'] / 360) * 100
+        # Cornering Score (Lower sector time is better, so we invert)
+        cornering_score = (100 - avg_data['sector_2_time']) * 1.5
+        
+        categories = ['Top Speed', 'Cornering', 'Consistency', 'Aggression', 'Tyre Mgmt']
+        
+        fig_radar = go.Figure()
+        # Driver 1
+        fig_radar.add_trace(go.Scatterpolar(
+            r=[speed_score[0], cornering_score[0], 85, 90, 88],
+            theta=categories, fill='toself', name=d1, line_color='#3671C6'
+        ))
+        # Driver 2
+        fig_radar.add_trace(go.Scatterpolar(
+            r=[speed_score[1], cornering_score[1], 80, 92, 95],
+            theta=categories, fill='toself', name=d2, line_color='#FCD12A'
+        ))
+        fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), template="plotly_dark")
+        st.plotly_chart(fig_radar, use_container_width=True)
+
 # --- MODULE 3: FAN SENTIMENT  ---
 elif page == "F1 News Sentiment Analysis":
     st.title("Fan & Media Sentiment Analysis")
@@ -187,6 +208,20 @@ elif page == "Championship Simulator":
             st.metric("Predicted Champion", top_driver['Driver'])
             st.metric("Win Probability", f"{top_driver['Title Probability']:.1f}%")
             st.write("Based on current performance weights and remaining race calendar.")
+
+            st.divider()
+            st.subheader("Constructor Championship Probability")
+            team_map = {"Red Bull": ["Verstappen", "Perez"], "McLaren": ["Norris", "Piastri"], "Ferrari": ["Leclerc", "Sainz"]}
+            team_data = []
+            for team, drivers in team_map.items():
+            # Sum prob of drivers
+                prob = df_results[df_results['Driver'].isin(drivers)]['Title Probability'].sum()
+            # Normalize or adjust logic as needed for Team Title specific rules
+                team_data.append({"Team": team, "Probability": prob})
+            df_teams = pd.DataFrame(team_data).sort_values(by="Probability", ascending=False)
+            fig_team = px.bar(df_teams, x="Probability", y="Team", orientation='h', color="Team", 
+                            title="Projected Constructor Title Chances", template="plotly_dark")
+            st.plotly_chart(fig_team, use_container_width=True)
 
 # --- MODULE 5: SPONSORSHIP MEDIA VALUE ESTIMATOR ---
 elif page == "Sponsorship Media Value Estimator":

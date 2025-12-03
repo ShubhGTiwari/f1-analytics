@@ -35,17 +35,35 @@ def analyze_strategy(df):
     print("Analyzing Tyre Degradation...")
     
     # 1. Clean outliers (laps slower than 105s are likely yellow flags/errors)
-    df_clean = df[df['lap_time_seconds'] < 105]
+    df_clean = df[df['lap_time_seconds'] < 105].copy()
+
+    # --- NEW: FUEL CORRECTION LOGIC ---
+    # Rule of Thumb: 1kg of fuel costs ~0.035s per lap
+    # Fuel Load: Starts at ~110kg, burns ~1.8kg per lap
+    FUEL_PENALTY_PER_KG = 0.035
+    STARTING_FUEL = 110
+    FUEL_BURN_PER_LAP = 1.7
+
+    # Calculate current fuel weight for every lap
+    df_clean['current_fuel_kg'] = STARTING_FUEL - (df_clean['lap_number'] * FUEL_BURN_PER_LAP)
+    
+    # Calculate the "Time penalty" caused by weight
+    df_clean['fuel_penalty'] = df_clean['current_fuel_kg'] * FUEL_PENALTY_PER_KG
+    
+    # The "True" Pace (Adjusted to remove fuel weight effect)
+    df_clean['fuel_adjusted_pace'] = df_clean['lap_time_seconds'] - df_clean['fuel_penalty']
+    # ----------------------------------
+
 
     # 2. Visualize: Tyre Age vs. Lap Time
     fig = px.scatter(
         df_clean, 
         x="tyre_life", 
-        y="lap_time_seconds", 
+        y="fuel_adjusted_pace", 
         color="tyre_compound",
         trendline="ols", 
-        title="Bahrain 2024: Tyre Degradation Analysis (Strategy Model)",
-        labels={"tyre_life": "Tyre Age (Laps)", "lap_time_seconds": "Lap Time (s)"},
+        title="Fuel Corrected Tyre Degradation Analysis",
+        labels={"tyre_life": "Tyre Age (Laps)", "fuel_adjusted_pace": "Fuel Adjusted  (s)"},
         color_discrete_map={"SOFT": "red", "MEDIUM": "yellow", "HARD": "white"}
     )
     
