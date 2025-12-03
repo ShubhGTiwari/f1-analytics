@@ -9,7 +9,7 @@ from simulation import run_championship_simulation
 from sponsorship_service import calculate_media_value
 from cv_service import analyze_pit_stop_video
 import time
-
+from fastf1.ergast import Ergast
 # --- CONFIGURATION ---
 st.set_page_config(page_title="F1 Analytics Platform", layout="wide")
 DB_URI = st.secrets["DB_CONNECTION_URI"]
