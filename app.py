@@ -20,7 +20,7 @@ page = st.sidebar.radio("Select Module:", ["Race Strategy Optimizer", "Driver Te
 
 # --- MODULE 1: STRATEGY ---
 if page == "Race Strategy Optimizer":
-    st.title("🛡️ Race Strategy Optimizer")
+    st.title("Race Strategy Optimizer")
     st.markdown("Analyze tyre degradation curves to predict the optimal pit window.")
     
     # Fetch Data
@@ -50,7 +50,7 @@ if page == "Race Strategy Optimizer":
 
 # --- MODULE 2: TELEMETRY---
 elif page == "Driver Telemetry Comparison":
-    st.title("📊 Driver Telemetry Analysis")
+    st.title("Driver Telemetry Analysis")
     st.markdown("Compare Sector Times and Top Speeds between two drivers.")
 
     # 1. Driver Selection
@@ -73,7 +73,7 @@ elif page == "Driver Telemetry Comparison":
         avg_data = df_tel.groupby('driver_code')[['sector_1_time', 'sector_2_time', 'sector_3_time', 'max_speed_kmh']].mean().reset_index()
         
         # 3. Bar Chart Comparison (Sector Times)
-        st.subheader("⏱️ Average Sector Time Comparison")
+        st.subheader("Average Sector Time Comparison")
         
         # Transform for plotting
         df_melt = avg_data.melt(id_vars='driver_code', value_vars=['sector_1_time', 'sector_2_time', 'sector_3_time'], var_name='Sector', value_name='Time (s)')
@@ -86,7 +86,7 @@ elif page == "Driver Telemetry Comparison":
         st.plotly_chart(fig_sectors, use_container_width=True)
 
         # 4. Top Speed Comparison
-        st.subheader("🚀 Speed Trap Comparison (Max Kmh)")
+        st.subheader("Speed Trap Comparison (Max Kmh)")
         fig_speed = px.bar(
             avg_data, x="driver_code", y="max_speed_kmh", color="driver_code",
             color_discrete_map={d1: "#3671C6", d2: "#FCD12A"},
