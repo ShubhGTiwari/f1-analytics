@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from sqlalchemy import create_engine, text
 import feedparser
 from textblob import TextBlob
+from simulation import run_championship_simulation
 
 # --- CONFIGURATION ---
 st.set_page_config(page_title="F1 Analytics Platform", layout="wide")
@@ -18,7 +19,7 @@ engine = get_db_engine()
 
 # --- SIDEBAR ---
 st.sidebar.title("🏎️ F1 Engineer Hub")
-page = st.sidebar.radio("Select Module:", ["Race Strategy Optimizer", "Driver Telemetry Comparison", "F1 News Sentiment Analysis"])
+page = st.sidebar.radio("Select Module:", ["Race Strategy Optimizer", "Driver Telemetry Comparison", "F1 News Sentiment Analysis", "Championship Simulator"])
 
 # --- MODULE 1: STRATEGY ---
 if page == "Race Strategy Optimizer":
@@ -137,3 +138,40 @@ elif page == "F1 News Sentiment Analysis":
     st.subheader("Latest Headlines")
     for index, row in df_news.iterrows():
         st.markdown(f"**{row['Mood']}** | [{row['Title']}]({row['Link']})")
+
+# --- MODULE 4: CHAMPIONSHIP SIMULATOR ---
+elif page == "Championship Simulator":
+    st.title("Championship Prediction Model")
+    st.markdown("A **Monte Carlo Simulation** that runs 10,000 race scenarios to predict the World Champion.")
+
+    # User Inputs 
+    sim_counts = st.slider("Number of Simulations", min_value=100, max_value=10000, value=1000)
+    
+    if st.button("Run Prediction Model"):
+        with st.spinner(f"Simulating {sim_count} seasons..."):
+            df_results = run_championship_simulation(n_simulations=sim_count)
+            
+        # Visuals
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            st.subheader("Title Probability")
+            fig_sim = px.bar(
+                df_results, 
+                x="Title Probability", 
+                y="Driver", 
+                orientation='h',
+                text="Title Probability",
+                color="Title Probability",
+                color_continuous_scale="Viridis",
+                template="plotly_dark"
+            )
+            fig_sim.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
+            st.plotly_chart(fig_sim, use_container_width=True)
+            
+        with col2:
+            st.subheader("Leader Insights")
+            top_driver = df_results.iloc[0]
+            st.metric("Predicted Champion", top_driver['Driver'])
+            st.metric("Win Probability", f"{top_driver['Title Probability']:.1f}%")
+            st.write("Based on current performance weights and remaining race calendar.")
