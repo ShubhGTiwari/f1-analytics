@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlalchemy import create_engine, text
 import streamlit as st
-from ergastpy.ergast import Ergast
+from fastf1.ergast import Ergast
 
 # --- CONFIGURATION ---
 DB_URI = st.secrets["DB_CONNECTION_URI"]

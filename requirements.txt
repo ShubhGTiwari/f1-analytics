@@ -8,4 +8,3 @@ statsmodels
 feedparser
 textblob
 opencv-python-headless
-ergastpy
